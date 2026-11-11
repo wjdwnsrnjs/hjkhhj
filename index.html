@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIND_CORE // Cyberpunk Mental & SDGs Protocol</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Orbitron & Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            bg: '#05050a',
+                            card: '#0f111a',
+                            yellow: '#fcee0a',
+                            pink: '#ff0055',
+                            cyan: '#00f0ff',
+                            purple: '#9d00ff',
+                            green: '#00ff66',
+                            darkBorder: '#1e2235'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #05050a;
+            color: #00f0ff;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.2), transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(0, 240, 255, 0.12), transparent 50%),
+                radial-gradient(circle at 10% 50%, rgba(0, 255, 102, 0.08), transparent 40%),
+                linear-gradient(to bottom, rgba(5, 5, 10, 0.88), rgba(5, 5, 10, 0.98)),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 240, 255, 0.03) 3px, rgba(0, 240, 255, 0.03) 3px);
+            background-attachment: fixed;
+        }
+
+        .neon-border-yellow {
+            border: 1px solid #fcee0a;
+            box-shadow: 0 0 15px rgba(252, 238, 10, 0.35), inset 0 0 10px rgba(252, 238, 10, 0.1);
+        }
+        .neon-border-pink {
+            border: 1px solid #ff0055;
+            box-shadow: 0 0 18px rgba(255, 0, 85, 0.45), inset 0 0 10px rgba(255, 0, 85, 0.1);
+        }
+        .neon-border-cyan {
+            border: 1px solid #00f0ff;
+            box-shadow: 0 0 18px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+        .neon-border-green {
+            border: 1px solid #00ff66;
+            box-shadow: 0 0 18px rgba(0, 255, 102, 0.4), inset 0 0 10px rgba(0, 255, 102, 0.1);
+        }
+        
+        .neon-text-yellow { text-shadow: 0 0 10px rgba(252, 238, 10, 0.8); }
+        .neon-text-pink { text-shadow: 0 0 10px rgba(255, 0, 85, 0.8); }
+        .neon-text-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.8); }
+        .neon-text-green { text-shadow: 0 0 10px rgba(0, 255, 102, 0.8); }
+
+        .cyber-clip {
+            clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+        }
+        .cyber-btn-clip {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .glitch-hover:hover {
+            animation: glitch 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(0,240,255,0.1) 50%, rgba(255,255,255,0));
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+
+        .tab-btn.active {
+            background-color: #00f0ff;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+        }
+
+        /* Target Hacking Minigame Nodes */
+        .hack-node {
+            transition: all 0.2s ease;
+        }
+        .hack-node:hover {
+            transform: scale(1.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 md:p-6 select-none">
+
+    <!-- Top Status Bar & Audio Switch -->
+    <div class="max-w-5xl mx-auto w-full flex flex-wrap justify-between items-center mb-3 text-xs font-orbitron border-b border-cyber-darkBorder pb-2 gap-2">
+        <div class="flex items-center gap-4 text-gray-400">
+            <span><i class="fa-solid fa-signal text-cyber-cyan animate-pulse"></i> NET: <span class="text-cyber-cyan">CONNECTED</span></span>
+            <span><i class="fa-solid fa-heart-pulse text-cyber-pink"></i> BPM: <span id="pulseBpm" class="text-cyber-pink">78 BPM</span></span>
+            <span><i class="fa-solid fa-leaf text-cyber-green"></i> SDGs IMPACT: <span id="sdgsScore" class="text-cyber-green">120 PTS</span></span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleAudioAmbient()" id="audioBtn" class="px-3 py-1 bg-cyber-card border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black transition flex items-center gap-2 cyber-btn-clip text-[11px]">
+                <i class="fa-solid fa-headphones"></i> <span id="audioBtnText">AMBIENT: OFF</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header & HUD Profile Overview -->
+    <header class="max-w-5xl mx-auto w-full mb-6 text-center relative">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-cyber-card/90 p-4 border border-cyber-darkBorder cyber-clip mb-4">
+            <!-- User Title & Level -->
+            <div class="flex items-center gap-3 text-left">
+                <div class="w-12 h-12 bg-cyber-bg border-2 border-cyber-yellow flex items-center justify-center text-cyber-yellow text-2xl font-bold font-orbitron cyber-btn-clip">
+                    <i class="fa-solid fa-user-ninja"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="userTitle" class="text-xs font-orbitron bg-cyber-yellow text-black font-extrabold px-2 py-0.5 cyber-btn-clip">GREEN EDGERUNNER</span>
+                        <span id="userLevel" class="text-xs font-orbitron font-bold text-cyber-cyan">LV.1</span>
+                    </div>
+                    <h1 class="text-lg font-bold font-orbitron text-white mt-0.5 tracking-wider">MIND_CORE <span class="text-cyber-pink">//</span> SDGs OS-77</h1>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="flex items-center gap-4 text-xs font-orbitron">
+                <div class="text-center px-3 border-r border-cyber-darkBorder">
+                    <span class="text-gray-400 block text-[10px]">PSYCHO RISK</span>
+                    <span id="psychoRiskLevel" class="text-cyber-cyan font-bold">5% [LOW]</span>
+                </div>
+                <div class="text-center px-3 border-r border-cyber-darkBorder">
+                    <span class="text-gray-400 block text-[10px]">SDGs COINS</span>
+                    <span id="sdgsCoinCount" class="text-cyber-green font-bold"><i class="fa-solid fa-coins"></i> 35</span>
+                </div>
+                <div class="text-center px-3">
+                    <span class="text-gray-400 block text-[10px]">CURRENT XP</span>
+                    <span id="xpText" class="text-cyber-yellow font-bold">0 / 100 XP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (UI/UX Improvement) -->
+        <nav class="flex justify-center gap-2 font-orbitron text-xs">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-4 py-2 bg-cyber-card border border-cyber-cyan text-cyber-cyan hover:border-cyber-cyan cyber-btn-clip transition flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high"></i> DASHBOARD
+            </button>
+            <button onclick="switchTab('sdgs')" id="tab-sdgs" class="tab-btn px-4 py-2 bg-cyber-card border border-cyber-darkBorder text-gray-400 hover:border-cyber-green hover:text-cyber-green cyber-btn-clip transition flex items-center gap-2">
+                <i class="fa-solid fa-earth-americas text-cyber-green"></i> SDGs QUESTS
+            </button>
+            <button onclick="switchTab('minigame')" id="tab-minigame" class="tab-btn px-4 py-2 bg-cyber-card border border-cyber-darkBorder text-gray-400 hover:border-cyber-pink hover:text-cyber-pink cyber-btn-clip transition flex items-center gap-2">
+                <i class="fa-solid fa-gamepad text-cyber-pink"></i> DEBUG HACKING
+            </button>
+            <button onclick="switchTab('badges')" id="tab-badges" class="tab-btn px-4 py-2 bg-cyber-card border border-cyber-darkBorder text-gray-400 hover:border-cyber-yellow hover:text-cyber-yellow cyber-btn-clip transition flex items-center gap-2">
+                <i class="fa-solid fa-award text-cyber-yellow"></i> BADGES
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Containers -->
+    <main class="max-w-5xl mx-auto w-full mb-8">
+        
+        <!-- TAB 1: MAIN DASHBOARD -->
+        <div id="view-dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Affirmation & Today's Log -->
+            <section class="md:col-span-2 space-y-6">
+                <!-- Cyber Affirmation -->
+                <div class="bg-cyber-card/90 p-5 neon-border-cyan cyber-clip relative overflow-hidden">
+                    <div class="scanline absolute inset-0 pointer-events-none"></div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-[10px] font-orbitron font-bold text-cyber-bg bg-cyber-cyan px-2 py-0.5 uppercase tracking-wider">
+                            // MOTTO_OVERRIDE
+                        </span>
+                        <button onclick="getRandomAffirmation()" class="text-cyber-yellow hover:text-white text-xs font-orbitron transition glitch-hover flex items-center gap-1">
+                            <i class="fa-solid fa-rotate"></i> RE-SYNC
+                        </button>
+                    </div>
+                    <p id="affirmationText" class="text-base font-medium text-white my-2 leading-relaxed border-l-4 border-cyber-pink pl-3 italic">
+                        "나이트 시티에서 살아남는 건 힘이 아니라, 흔들리지 않는 정신이다."
+                    </p>
+                </div>
+
+                <!-- Emotion Sync & Memo Form -->
+                <div class="bg-cyber-card/90 p-5 neon-border-yellow cyber-clip">
+                    <h2 class="text-base font-bold font-orbitron text-cyber-yellow flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-bolt text-cyber-pink"></i> EMOTIONAL_SYNC_LOG
+                    </h2>
+                    
+                    <form id="journalForm" onsubmit="saveEntry(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-orbitron text-cyber-cyan mb-2 uppercase tracking-wider">SELECT MENTAL STATE</label>
+                            <div class="grid grid-cols-5 gap-2" id="moodSelector">
+                                <button type="button" onclick="selectMood('OVERCLOCK', '⚡', 5, this)" class="mood-btn p-2 bg-cyber-bg border border-cyber-yellow text-cyber-yellow hover:bg-cyber-yellow/10 flex flex-col items-center justify-center transition active">
+                                    <span class="text-2xl mb-1">⚡</span>
+                                    <span class="text-[9px] font-orbitron">OVERCLOCK</span>
+                                </button>
+                                <button type="button" onclick="selectMood('STABLE', '🛡️', 0, this)" class="mood-btn p-2 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-cyan flex flex-col items-center justify-center transition">
+                                    <span class="text-2xl mb-1">🛡️</span>
+                                    <span class="text-[9px] font-orbitron text-cyber-cyan">STABLE</span>
+                                </button>
+                                <button type="button" onclick="selectMood('HYPER', '🔥', 15, this)" class="mood-btn p-2 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-pink flex flex-col items-center justify-center transition">
+                                    <span class="text-2xl mb-1">🔥</span>
+                                    <span class="text-[9px] font-orbitron text-cyber-pink">HYPER</span>
+                                </button>
+                                <button type="button" onclick="selectMood('DRAINED', '💀', 45, this)" class="mood-btn p-2 bg-cyber-bg border border-cyber-darkBorder hover:border-red-500 flex flex-col items-center justify-center transition">
+                                    <span class="text-2xl mb-1">💀</span>
+                                    <span class="text-[9px] font-orbitron text-red-500">DRAINED</span>
+                                </button>
+                                <button type="button" onclick="selectMood('GLITCH', '👾', 85, this)" class="mood-btn p-2 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-purple flex flex-col items-center justify-center transition">
+                                    <span class="text-2xl mb-1">👾</span>
+                                    <span class="text-[9px] font-orbitron text-cyber-purple">GLITCH</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="journalText" class="block text-xs font-orbitron text-cyber-cyan mb-1 uppercase tracking-wider">SYSTEM MEMO & REFLECTION</label>
+                            <textarea id="journalText" rows="3" required placeholder="// 오늘 신경 과부하 예방을 위한 메모 및 스스로에게 전하는 메시지" class="w-full p-3 bg-cyber-bg border border-cyber-darkBorder focus:border-cyber-yellow focus:outline-none text-white text-xs resize-none font-sans"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-cyber-yellow hover:bg-yellow-300 text-black font-orbitron font-extrabold py-3 cyber-btn-clip transition flex items-center justify-center gap-2 text-xs tracking-wider glitch-hover">
+                            <i class="fa-solid fa-terminal"></i> EXECUTE_LOG_SAVE()
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Right Column: Routines & Emergency Boost -->
+            <section class="space-y-6">
+                <!-- Daily Routines -->
+                <div class="bg-cyber-card/90 p-5 neon-border-pink cyber-clip">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold font-orbitron text-cyber-pink flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-cyber-yellow"></i> CYBER_ROUTINE
+                        </h2>
+                        <span id="routineProgress" class="text-xs font-orbitron text-cyber-yellow font-bold">0 / 4</span>
+                    </div>
+                    
+                    <div class="space-y-2.5" id="habitList">
+                        <label class="flex items-center justify-between p-2 bg-cyber-bg border border-cyber-darkBorder cursor-pointer hover:border-cyber-pink transition group">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" onchange="toggleHabit(this)" class="accent-cyber-pink w-4 h-4 cursor-pointer">
+                                <span class="text-xs font-orbitron text-white group-hover:text-cyber-pink transition">수분 팩 2L 공급 💧</span>
+                            </div>
+                            <span class="text-[9px] font-orbitron text-cyber-cyan">+15 XP</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-cyber-bg border border-cyber-darkBorder cursor-pointer hover:border-cyber-pink transition group">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" onchange="toggleHabit(this)" class="accent-cyber-pink w-4 h-4 cursor-pointer">
+                                <span class="text-xs font-orbitron text-white group-hover:text-cyber-pink transition">뉴럴 쿨링 마인드풀니스 🧘</span>
+                            </div>
+                            <span class="text-[9px] font-orbitron text-cyber-cyan">+20 XP</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-cyber-bg border border-cyber-darkBorder cursor-pointer hover:border-cyber-pink transition group">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" onchange="toggleHabit(this)" class="accent-cyber-pink w-4 h-4 cursor-pointer">
+                                <span class="text-xs font-orbitron text-white group-hover:text-cyber-pink transition">임플란트 스트레칭 🙆</span>
+                            </div>
+                            <span class="text-[9px] font-orbitron text-cyber-cyan">+10 XP</span>
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-cyber-bg border border-cyber-darkBorder cursor-pointer hover:border-cyber-pink transition group">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" onchange="toggleHabit(this)" class="accent-cyber-pink w-4 h-4 cursor-pointer">
+                                <span class="text-xs font-orbitron text-white group-hover:text-cyber-pink transition">긍정 스마일 인젝션 😊</span>
+                            </div>
+                            <span class="text-[9px] font-orbitron text-cyber-cyan">+25 XP</span>
+                        </label>
+                    </div>
+
+                    <!-- Progress XP Gauge -->
+                    <div class="mt-4 pt-3 border-t border-cyber-darkBorder">
+                        <div class="w-full bg-cyber-bg h-2 border border-cyber-darkBorder overflow-hidden">
+                            <div id="xpBar" class="bg-gradient-to-r from-cyber-cyan via-cyber-pink to-cyber-yellow h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Injector -->
+                <div class="bg-cyber-card/90 p-4 border border-cyber-purple relative overflow-hidden">
+                    <h3 class="text-xs font-orbitron font-bold text-cyber-purple uppercase mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-cyber-yellow"></i> EMERGENCY COOLING
+                    </h3>
+                    <p class="text-[11px] text-gray-300 mb-3">정신 과부하 진단 시 5초 이머전시 호흡 세션을 작동하세요.</p>
+                    <button onclick="triggerEmergencyInject()" class="w-full bg-cyber-purple hover:bg-purple-600 text-white font-orbitron text-xs font-bold py-2 cyber-btn-clip transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-syringe"></i> COOLING INJECTOR
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: SDGs SUSTAINABLE QUESTS -->
+        <div id="view-sdgs" class="hidden space-y-6">
+            <div class="bg-cyber-card/90 p-6 neon-border-green cyber-clip">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold font-orbitron text-cyber-green flex items-center gap-2">
+                            <i class="fa-solid fa-earth-americas"></i> SDGs SUSTAINABLE ECO-QUESTS
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">지속가능발전목표(SDGs)를 실천하고 나이트시티의 환경과 내 정신 건강을 함께 지키세요!</p>
+                    </div>
+                    <span class="text-xs font-orbitron bg-cyber-green text-black px-3 py-1 font-bold cyber-btn-clip">
+                        TOTAL COINS: <span id="sdgsTabCoins">35</span> COINS
+                    </span>
+                </div>
+
+                <!-- Quest Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- SDG Goal 3 -->
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-green transition cyber-clip space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-orbitron bg-green-900/60 text-cyber-green px-2 py-0.5 border border-cyber-green/40">SDG 3: 건강과 웰빙</span>
+                            <span class="text-xs font-orbitron text-cyber-yellow font-bold">+50 PTS</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white font-orbitron">30분 미디어 디톡스 📵</h3>
+                        <p class="text-xs text-gray-400">뇌의 가부하를 줄이고 블루라이트를 차단하여 뉴럴 쿨다운을 진행합니다.</p>
+                        <button onclick="completeSdgQuest(1, 50, 20)" class="w-full bg-cyber-green/20 hover:bg-cyber-green hover:text-black text-cyber-green font-orbitron text-xs font-bold py-2 border border-cyber-green transition cyber-btn-clip">
+                            COMPLETE QUEST
+                        </button>
+                    </div>
+
+                    <!-- SDG Goal 12 -->
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-green transition cyber-clip space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-orbitron bg-green-900/60 text-cyber-green px-2 py-0.5 border border-cyber-green/40">SDG 12: 책임감 있는 소비</span>
+                            <span class="text-xs font-orbitron text-cyber-yellow font-bold">+40 PTS</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white font-orbitron">텀블러 & 친환경 수분 ☕</h3>
+                        <p class="text-xs text-gray-400">일회용 플라스틱을 거부하고 개인 텀블러로 멘탈 음료를 보충하세요.</p>
+                        <button onclick="completeSdgQuest(2, 40, 15)" class="w-full bg-cyber-green/20 hover:bg-cyber-green hover:text-black text-cyber-green font-orbitron text-xs font-bold py-2 border border-cyber-green transition cyber-btn-clip">
+                            COMPLETE QUEST
+                        </button>
+                    </div>
+
+                    <!-- SDG Goal 13 -->
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-green transition cyber-clip space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-orbitron bg-green-900/60 text-cyber-green px-2 py-0.5 border border-cyber-green/40">SDG 13: 기후변화 대응</span>
+                            <span class="text-xs font-orbitron text-cyber-yellow font-bold">+60 PTS</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white font-orbitron">계단 이용 걷기 루틴 🚶</h3>
+                        <p class="text-xs text-gray-400">탄소 배출을 줄이기 위해 엘리베이터 대신 계단을 이용해 운동하세요.</p>
+                        <button onclick="completeSdgQuest(3, 60, 25)" class="w-full bg-cyber-green/20 hover:bg-cyber-green hover:text-black text-cyber-green font-orbitron text-xs font-bold py-2 border border-cyber-green transition cyber-btn-clip">
+                            COMPLETE QUEST
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: DEBUG HACKING MINIGAME -->
+        <div id="view-minigame" class="hidden space-y-6">
+            <div class="bg-cyber-card/90 p-6 neon-border-pink cyber-clip text-center relative">
+                <h2 class="text-xl font-bold font-orbitron text-cyber-pink mb-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bug"></i> NEURAL OVERRIDE // DEBUG HACKING
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">정신 과부하 글리치 노드를 클릭하여 시스템을 안정화시키세요!</p>
+
+                <!-- Game Canvas Box -->
+                <div class="max-w-md mx-auto h-64 bg-cyber-bg border-2 border-cyber-pink relative overflow-hidden cyber-clip flex items-center justify-center" id="gameArea">
+                    <div id="gameStartScreen" class="space-y-4">
+                        <p class="text-xs font-orbitron text-cyber-cyan">TARGET: CLEAR 10 GLITCH NODES</p>
+                        <button onclick="startMiniGame()" class="bg-cyber-pink text-black font-orbitron font-extrabold px-6 py-2.5 cyber-btn-clip hover:bg-pink-400 transition">
+                            START OVERRIDE PROTOCOL
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-between items-center max-w-md mx-auto text-xs font-orbitron">
+                    <span class="text-cyber-yellow">SCORE: <span id="gameScore">0</span> / 10</span>
+                    <span class="text-cyber-cyan">TIMER: <span id="gameTimer">15</span>s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: BADGES & ACHIEVEMENTS -->
+        <div id="view-badges" class="hidden space-y-6">
+            <div class="bg-cyber-card/90 p-6 neon-border-yellow cyber-clip">
+                <h2 class="text-xl font-bold font-orbitron text-cyber-yellow mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-award"></i> ACHIEVEMENTS & UNLOCKED BADGES
+                </h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="badgeGrid">
+                    <div class="p-4 bg-cyber-bg border border-cyber-yellow text-center cyber-clip space-y-2">
+                        <i class="fa-solid fa-shield-halved text-3xl text-cyber-yellow"></i>
+                        <h3 class="text-xs font-bold font-orbitron text-white">FIRST RE-BOOT</h3>
+                        <p class="text-[10px] text-gray-400">첫 멘탈 기록 완료</p>
+                        <span class="text-[9px] font-orbitron bg-cyber-yellow text-black font-bold px-1.5 py-0.5">UNLOCKED</span>
+                    </div>
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder opacity-50 text-center cyber-clip space-y-2" id="badge-sdg">
+                        <i class="fa-solid fa-leaf text-3xl text-cyber-green"></i>
+                        <h3 class="text-xs font-bold font-orbitron text-white">ECO RUNNER</h3>
+                        <p class="text-[10px] text-gray-400">SDGs 퀘스트 3회 완수</p>
+                        <span class="text-[9px] font-orbitron bg-gray-700 text-gray-300 px-1.5 py-0.5" id="badge-sdg-status">LOCKED</span>
+                    </div>
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder opacity-50 text-center cyber-clip space-y-2" id="badge-hacker">
+                        <i class="fa-solid fa-laptop-code text-3xl text-cyber-cyan"></i>
+                        <h3 class="text-xs font-bold font-orbitron text-white">MASTER HACKER</h3>
+                        <p class="text-[10px] text-gray-400">디버그 미니게임 성공</p>
+                        <span class="text-[9px] font-orbitron bg-gray-700 text-gray-300 px-1.5 py-0.5" id="badge-hacker-status">LOCKED</span>
+                    </div>
+                    <div class="p-4 bg-cyber-bg border border-cyber-darkBorder opacity-50 text-center cyber-clip space-y-2" id="badge-zen">
+                        <i class="fa-solid fa-brain text-3xl text-cyber-pink"></i>
+                        <h3 class="text-xs font-bold font-orbitron text-white">ZEN MASTER</h3>
+                        <p class="text-[10px] text-gray-400">레벨 3 달성</p>
+                        <span class="text-[9px] font-orbitron bg-gray-700 text-gray-300 px-1.5 py-0.5" id="badge-zen-status">LOCKED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- History Log Archive Container -->
+    <section class="max-w-5xl mx-auto w-full mb-8">
+        <div class="bg-cyber-card/90 p-5 neon-border-cyan cyber-clip">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-base font-bold font-orbitron text-cyber-cyan flex items-center gap-2">
+                    <i class="fa-solid fa-database text-cyber-yellow"></i> MEMORY_BANKS // LOG_ARCHIVE
+                </h2>
+                <div class="flex items-center gap-3">
+                    <button onclick="exportLogs()" class="text-xs font-orbitron text-cyber-yellow hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-file-export"></i> EXPORT
+                    </button>
+                    <button onclick="clearHistory()" class="text-xs font-orbitron text-cyber-pink hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> PURGE
+                    </button>
+                </div>
+            </div>
+            
+            <div id="historyList" class="space-y-2.5 max-h-64 overflow-y-auto pr-2">
+                <p id="emptyMessage" class="text-xs font-orbitron text-gray-500 text-center py-6">// NO_DATA_FOUND. INITIALIZE YOUR FIRST LOG ENTRY.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emergency Modal Screen -->
+    <div id="emergencyModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-4">
+        <div class="max-w-md w-full bg-cyber-card border-2 border-cyber-pink p-6 text-center cyber-clip neon-border-pink">
+            <i class="fa-solid fa-biohazard text-5xl text-cyber-pink animate-bounce mb-3"></i>
+            <h2 class="text-2xl font-orbitron font-extrabold text-cyber-yellow mb-2">NEURAL COOLING ACTIVE</h2>
+            <p class="text-xs text-gray-300 font-sans mb-6">깊게 숨을 들이쉬고 화면의 파동에 집중하세요. 멘탈 과부하를 차단합니다.</p>
+            
+            <div class="w-28 h-28 mx-auto rounded-full border-4 border-cyber-cyan flex items-center justify-center animate-ping mb-6 opacity-75">
+                <span class="text-cyber-yellow font-orbitron text-xs">BREATHE...</span>
+            </div>
+
+            <button onclick="closeEmergencyInject()" class="bg-cyber-pink text-black font-orbitron font-bold px-6 py-2 cyber-btn-clip hover:bg-pink-600 transition">
+                OVERRIDE & CLOSE
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Toast Message Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-cyber-yellow text-black font-orbitron font-bold px-5 py-3 cyber-btn-clip shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 pointer-events-none z-50">
+        <i class="fa-solid fa-square-check text-black text-base"></i>
+        <span id="toastMessage" class="text-xs uppercase">DATA_SYNC_SUCCESSFUL</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-5xl mx-auto w-full text-center text-[11px] font-orbitron text-gray-600 pt-3 border-t border-cyber-darkBorder">
+        <p>MIND_CORE OS // SDGs CYBERPUNK SAFETY NETWORK © 2077 ALL RIGHTS RESERVED.</p>
+    </footer>
+
+    <!-- JavaScript Core Logic -->
+    <script>
+        // State Variables
+        let selectedMoodData = { name: 'OVERCLOCK', emoji: '⚡', risk: 5 };
+        let totalXP = parseInt(localStorage.getItem('cyber_user_xp') || '0');
+        let sdgsCoins = parseInt(localStorage.getItem('cyber_sdgs_coins') || '35');
+        let sdgsPoints = parseInt(localStorage.getItem('cyber_sdgs_pts') || '120');
+        let sdgsCount = parseInt(localStorage.getItem('cyber_sdgs_count') || '0');
+        
+        let audioContext = null;
+        let isAudioPlaying = false;
+        let ambientOscillator = null;
+
+        // MiniGame State
+        let gameScore = 0;
+        let gameTimer = 15;
+        let gameInterval = null;
+
+        const affirmations = [
+            "나이트 시티에서 살아남는 건 힘이 아니라, 흔들리지 않는 정신이다.",
+            "데이비드처럼 전속력으로 달릴 필요는 없다. 내 페이스대로 적응하라.",
+            "임플란트가 한계를 맞이하더라도, 당신의 인간성은 꺼지지 않는다.",
+            "어떤 노이즈 속에서도 나만의 소스 코드를 지켜내라.",
+            "오늘의 실패는 단순한 시스템 에러일 뿐이다. 내일 다시 리부트하라.",
+            "지속 가능한 지구와 내 커리어의 밸런스를 맞춰라."
+        ];
+
+        // Tab Switching Logic (UI/UX Improvement)
+        function switchTab(tabId) {
+            document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-cyber-cyan', 'border-cyber-cyan');
+                btn.classList.add('text-gray-400', 'border-cyber-darkBorder');
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.add('active');
+            playBeepSound(500, 0.05);
+        }
+
+        // Affirmation Sync
+        function getRandomAffirmation() {
+            const randomIndex = Math.floor(Math.random() * affirmations.length);
+            document.getElementById('affirmationText').innerText = `"${affirmations[randomIndex]}"`;
+            playBeepSound(600, 0.05);
+        }
+
+        // Mood Selection
+        function selectMood(name, emoji, risk, element) {
+            selectedMoodData = { name, emoji, risk };
+            
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('border-cyber-yellow', 'bg-cyber-yellow/10');
+                btn.classList.add('border-cyber-darkBorder');
+            });
+
+            element.classList.remove('border-cyber-darkBorder');
+            element.classList.add('border-cyber-yellow', 'bg-cyber-yellow/10');
+
+            const riskElem = document.getElementById('psychoRiskLevel');
+            riskElem.innerText = `${risk}% [${risk > 50 ? 'CRITICAL' : (risk > 20 ? 'MEDIUM' : 'LOW')}]`;
+            riskElem.className = `font-bold ${risk > 50 ? 'text-cyber-pink animate-pulse' : (risk > 20 ? 'text-cyber-yellow' : 'text-cyber-cyan')}`;
+
+            playBeepSound(440, 0.05);
+        }
+
+        // Habit Routine Check
+        function toggleHabit(checkbox) {
+            const label = checkbox.parentElement.parentElement;
+            if (checkbox.checked) {
+                label.classList.add('line-through', 'opacity-50');
+                addXP(20);
+                showToast("[ROUTINE_COMPLETE] +20 XP SYNCED ⚡");
+                playBeepSound(800, 0.1);
+            } else {
+                label.classList.remove('line-through', 'opacity-50');
+            }
+            updateRoutineCount();
+        }
+
+        function updateRoutineCount() {
+            const checkboxes = document.querySelectorAll('#habitList input[type="checkbox"]');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            document.getElementById('routineProgress').innerText = `${checked} / ${checkboxes.length}`;
+        }
+
+        // SDGs Quest Reward Handler
+        function completeSdgQuest(id, pts, xp) {
+            sdgsPoints += pts;
+            sdgsCoins += 10;
+            sdgsCount++;
+            
+            localStorage.setItem('cyber_sdgs_pts', sdgsPoints);
+            localStorage.setItem('cyber_sdgs_coins', sdgsCoins);
+            localStorage.setItem('cyber_sdgs_count', sdgsCount);
+
+            addXP(xp);
+            updateSdgsUI();
+            checkBadges();
+            showToast(`[SDG QUEST COMPLETE] +${pts} PTS & +10 COINS 🌿`);
+            playBeepSound(900, 0.15);
+        }
+
+        function updateSdgsUI() {
+            document.getElementById('sdgsScore').innerText = `${sdgsPoints} PTS`;
+            document.getElementById('sdgsCoinCount').innerHTML = `<i class="fa-solid fa-coins"></i> ${sdgsCoins}`;
+            document.getElementById('sdgsTabCoins').innerText = sdgsCoins;
+        }
+
+        // XP & Leveling Logic
+        function addXP(points) {
+            totalXP += points;
+            localStorage.setItem('cyber_user_xp', totalXP);
+            renderXP();
+            checkBadges();
+        }
+
+        function renderXP() {
+            const level = Math.floor(totalXP / 100) + 1;
+            const currentXP = totalXP % 100;
+
+            document.getElementById('userLevel').innerText = `LV.${level}`;
+            document.getElementById('xpText').innerText = `${currentXP} / 100 XP`;
+            document.getElementById('xpBar').style.width = `${currentXP}%`;
+
+            if (level >= 3) {
+                document.getElementById('userTitle').innerText = "NEON LUCID EDGERUNNER";
+            }
+        }
+
+        // Achievements & Badges Check
+        function checkBadges() {
+            if (sdgsCount >= 3) {
+                const b = document.getElementById('badge-sdg');
+                b.classList.remove('opacity-50');
+                b.classList.add('border-cyber-green');
+                document.getElementById('badge-sdg-status').innerText = 'UNLOCKED';
+                document.getElementById('badge-sdg-status').className = 'text-[9px] font-orbitron bg-cyber-green text-black font-bold px-1.5 py-0.5';
+            }
+            if (Math.floor(totalXP / 100) + 1 >= 3) {
+                const b = document.getElementById('badge-zen');
+                b.classList.remove('opacity-50');
+                b.classList.add('border-cyber-pink');
+                document.getElementById('badge-zen-status').innerText = 'UNLOCKED';
+                document.getElementById('badge-zen-status').className = 'text-[9px] font-orbitron bg-cyber-pink text-black font-bold px-1.5 py-0.5';
+            }
+        }
+
+        // Hacking Minigame Logic
+        function startMiniGame() {
+            gameScore = 0;
+            gameTimer = 15;
+            document.getElementById('gameScore').innerText = gameScore;
+            document.getElementById('gameTimer').innerText = gameTimer;
+
+            const area = document.getElementById('gameArea');
+            area.innerHTML = '';
+
+            gameInterval = setInterval(() => {
+                gameTimer--;
+                document.getElementById('gameTimer').innerText = gameTimer;
+                if (gameTimer <= 0) {
+                    endMiniGame(false);
+                }
+            }, 1000);
+
+            spawnGlitchNode();
+        }
+
+        function spawnGlitchNode() {
+            if (gameTimer <= 0) return;
+
+            const area = document.getElementById('gameArea');
+            const node = document.createElement('div');
+            node.className = 'hack-node absolute w-10 h-10 bg-cyber-pink border-2 border-cyber-yellow flex items-center justify-center cursor-pointer cyber-btn-clip text-black font-orbitron font-extrabold text-xs shadow-lg';
+            node.innerText = '👾';
+
+            const maxX = area.clientWidth - 50;
+            const maxY = area.clientHeight - 50;
+            node.style.left = `${Math.max(10, Math.floor(Math.random() * maxX))}px`;
+            node.style.top = `${Math.max(10, Math.floor(Math.random() * maxY))}px`;
+
+            node.onclick = () => {
+                gameScore++;
+                document.getElementById('gameScore').innerText = gameScore;
+                playBeepSound(1100, 0.08);
+                node.remove();
+
+                if (gameScore >= 10) {
+                    endMiniGame(true);
+                } else {
+                    spawnGlitchNode();
+                }
+            };
+
+            area.appendChild(node);
+        }
+
+        function endMiniGame(success) {
+            clearInterval(gameInterval);
+            const area = document.getElementById('gameArea');
+            if (success) {
+                area.innerHTML = `
+                    <div class="space-y-3">
+                        <i class="fa-solid fa-trophy text-4xl text-cyber-yellow animate-bounce"></i>
+                        <p class="text-sm font-orbitron text-cyber-cyan font-bold">SYSTEM OVERRIDE SUCCESSFUL!</p>
+                        <p class="text-xs text-gray-300">+50 XP & HACKER BADGE UNLOCKED</p>
+                        <button onclick="startMiniGame()" class="bg-cyber-yellow text-black font-orbitron font-bold px-4 py-1.5 cyber-btn-clip text-xs">REPLAY</button>
+                    </div>
+                `;
+                addXP(50);
+                const b = document.getElementById('badge-hacker');
+                b.classList.remove('opacity-50');
+                b.classList.add('border-cyber-cyan');
+                document.getElementById('badge-hacker-status').innerText = 'UNLOCKED';
+                document.getElementById('badge-hacker-status').className = 'text-[9px] font-orbitron bg-cyber-cyan text-black font-bold px-1.5 py-0.5';
+            } else {
+                area.innerHTML = `
+                    <div class="space-y-3">
+                        <p class="text-sm font-orbitron text-cyber-pink font-bold">OVERRIDE FAILED // TIME EXPIRED</p>
+                        <button onclick="startMiniGame()" class="bg-cyber-pink text-black font-orbitron font-bold px-4 py-1.5 cyber-btn-clip text-xs">TRY AGAIN</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Save Entry to LocalStorage
+        function saveEntry(event) {
+            event.preventDefault();
+
+            const textInput = document.getElementById('journalText');
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const dateString = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const entry = {
+                id: Date.now(),
+                date: dateString,
+                mood: selectedMoodData.name,
+                emoji: selectedMoodData.emoji,
+                risk: selectedMoodData.risk,
+                note: text
+            };
+
+            const history = JSON.parse(localStorage.getItem('cyber_mind_history') || '[]');
+            history.unshift(entry);
+            localStorage.setItem('cyber_mind_history', JSON.stringify(history));
+
+            addXP(30);
+            textInput.value = '';
+            showToast("DATA_RECORDED // SYSTEM_SYNCED 🤍");
+            playBeepSound(1000, 0.15);
+            renderHistory();
+        }
+
+        // Render History Logs
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('cyber_mind_history') || '[]');
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<p id="emptyMessage" class="text-xs font-orbitron text-gray-500 text-center py-6">// NO_DATA_FOUND. INITIALIZE YOUR FIRST LOG ENTRY.</p>`;
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="p-2.5 bg-cyber-bg border border-cyber-darkBorder hover:border-cyber-cyan/50 flex items-start justify-between gap-3 cyber-btn-clip transition">
+                    <div class="flex items-start gap-3">
+                        <span class="text-lg bg-cyber-card p-1.5 border border-cyber-cyan/30">${item.emoji}</span>
+                        <div>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-xs font-orbitron font-bold text-cyber-yellow">${item.mood}</span>
+                                <span class="text-[9px] font-orbitron text-cyber-pink font-semibold">[RISK: ${item.risk || 0}%]</span>
+                                <span class="text-[9px] font-orbitron text-gray-500">${item.date}</span>
+                            </div>
+                            <p class="text-xs text-gray-200 font-sans">${escapeHtml(item.note)}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteEntry(${item.id})" class="text-gray-500 hover:text-cyber-pink text-xs p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteEntry(id) {
+            let history = JSON.parse(localStorage.getItem('cyber_mind_history') || '[]');
+            history = history.filter(item => item.id !== id);
+            localStorage.setItem('cyber_mind_history', JSON.stringify(history));
+            renderHistory();
+            showToast("SECTOR_DELETED");
+            playBeepSound(300, 0.08);
+        }
+
+        function exportLogs() {
+            const history = localStorage.getItem('cyber_mind_history') || '[]';
+            const blob = new Blob([history], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MIND_CORE_LOGS_${Date.now()}.json`;
+            a.click();
+            showToast("LOGS_EXPORTED_TO_FILE");
+        }
+
+        function clearHistory() {
+            if (confirm("모든 신경 데이터 기록을 영구 파기하시겠습니까?")) {
+                localStorage.removeItem('cyber_mind_history');
+                renderHistory();
+                showToast("ALL_SYSTEM_LOGS_PURGED");
+            }
+        }
+
+        function triggerEmergencyInject() {
+            document.getElementById('emergencyModal').classList.remove('hidden');
+            document.getElementById('emergencyModal').classList.add('flex');
+            playBeepSound(900, 0.3);
+        }
+
+        function closeEmergencyInject() {
+            document.getElementById('emergencyModal').classList.add('hidden');
+            document.getElementById('emergencyModal').classList.remove('flex');
+        }
+
+        // Web Audio Effects
+        function playBeepSound(freq, duration) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function toggleAudioAmbient() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const btnText = document.getElementById('audioBtnText');
+            if (isAudioPlaying) {
+                if (ambientOscillator) ambientOscillator.stop();
+                isAudioPlaying = false;
+                btnText.innerText = "AMBIENT: OFF";
+            } else {
+                ambientOscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                ambientOscillator.type = 'sine';
+                ambientOscillator.frequency.setValueAtTime(110, audioContext.currentTime);
+                gain.gain.setValueAtTime(0.02, audioContext.currentTime);
+                ambientOscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                ambientOscillator.start();
+                isAudioPlaying = true;
+                btnText.innerText = "AMBIENT: ON 🎶";
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        setInterval(() => {
+            const bpm = Math.floor(Math.random() * (90 - 72 + 1)) + 72;
+            document.getElementById('pulseBpm').innerText = `${bpm} BPM`;
+        }, 4000);
+
+        window.onload = function() {
+            renderHistory();
+            renderXP();
+            updateSdgsUI();
+            checkBadges();
+            getRandomAffirmation();
+        }
+    </script>
+</body>
+</html>
